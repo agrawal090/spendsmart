@@ -1,0 +1,43 @@
+# =============================================
+# SpendSmart MVP — .gitignore
+# =============================================
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor folders
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Logs
+*.log
+npm-debug.log*
+
+# Node (if added later)
+node_modules/
+package-lock.json
+
+# Environment / secrets — NEVER commit these
+.env
+.env.local
+.env.production
+secrets.js
+
+# Build output (if added later)
+dist/
+build/
+
+# Temp
+*.tmp
+*.bak

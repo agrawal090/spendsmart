@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SpendSmart</title>
+  <!-- GitHub Pages SPA redirect trick — sends all 404s back to index.html -->
+  <script>
+    var path = window.location.pathname;
+    var query = window.location.search;
+    var hash = window.location.hash;
+    window.location.replace(
+      window.location.origin + '/' +
+      '?p=' + encodeURIComponent(path.slice(1)) +
+      (query ? '&q=' + encodeURIComponent(query.slice(1)) : '') +
+      hash
+    );
+  </script>
+</head>
+<body>
+  <div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:Inter,sans-serif;flex-direction:column;gap:12px;">
+    <div style="width:48px;height:48px;background:#534AB7;border-radius:12px;"></div>
+    <div style="font-size:16px;color:#534AB7;font-weight:600;">Redirecting...</div>
+  </div>
+</body>
+</html>

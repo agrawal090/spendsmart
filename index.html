@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>SpendSmart — Track Every Rupee</title>
+  <meta name="theme-color" content="#534AB7" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="SpendSmart" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="app.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+<!-- ============================================================
+     SCREEN: AUTH (Login / Signup)
+============================================================ -->
+<div class="screen active" id="screen-auth">
+  <div class="auth-wrap">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>
+        </svg>
+      </div>
+      <div class="auth-logo-name">SpendSmart</div>
+    </div>
+
+    <!-- Tab toggle -->
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Log in</button>
+      <button class="auth-tab" id="tab-signup" onclick="switchAuthTab('signup')">Sign up</button>
+    </div>
+
+    <!-- Login form -->
+    <div id="form-login">
+      <div class="field-group">
+        <label class="field-label">Email address</label>
+        <input class="field-input" type="email" id="login-email" placeholder="your@email.com" autocomplete="email" />
+      </div>
+      <div class="field-group">
+        <label class="field-label">Password</label>
+        <input class="field-input" type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" />
+      </div>
+      <button class="btn-primary w-full" onclick="handleLogin()">Log in</button>
+    </div>
+
+    <!-- Signup form -->
+    <div id="form-signup" style="display:none;">
+      <div class="field-group">
+        <label class="field-label">Full name</label>
+        <input class="field-input" type="text" id="signup-name" placeholder="Rahul Sharma" autocomplete="name" />
+      </div>
+      <div class="field-group">
+        <label class="field-label">Email address</label>
+        <input class="field-input" type="email" id="signup-email" placeholder="your@email.com" autocomplete="email" />
+      </div>
+      <div class="field-group">
+        <label class="field-label">Password</label>
+        <input class="field-input" type="password" id="signup-password" placeholder="Min 6 characters" autocomplete="new-password" />
+      </div>
+      <div class="field-group">
+        <label class="field-label">Monthly budget (₹)</label>
+        <input class="field-input" type="number" id="signup-budget" placeholder="e.g. 15000" inputmode="numeric" />
+      </div>
+      <button class="btn-primary w-full" onclick="handleSignup()">Create account</button>
+    </div>
+
+    <div class="auth-divider"><span>or</span></div>
+    <button class="btn-google" onclick="handleGoogleLogin()">
+      <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Continue with Google
+    </button>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN: DASHBOARD (Home)
+============================================================ -->
+<div class="screen" id="screen-dashboard">
+  <div class="app-layout">
+
+    <!-- Top header -->
+    <div class="dash-header">
+      <div>
+        <div class="dash-greeting" id="dash-greeting">Good morning,</div>
+        <div class="dash-name" id="dash-name">Loading...</div>
+      </div>
+      <button class="avatar-btn" id="dash-avatar" onclick="goTo('screen-settings')">RS</button>
+    </div>
+
+    <!-- Budget card -->
+    <div class="budget-card">
+      <div class="budget-card-top">
+        <div>
+          <div class="budget-label">SPENT THIS MONTH</div>
+          <div class="budget-amount" id="dash-spent">₹0</div>
+          <div class="budget-sub" id="dash-budget-sub">of ₹0 budget</div>
+        </div>
+        <div class="budget-status-badge" id="dash-status-badge">On track</div>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="dash-progress" style="width:0%"></div>
+      </div>
+      <div class="progress-labels">
+        <span id="dash-pct">0% used</span>
+        <span class="green" id="dash-remaining">₹0 left</span>
+      </div>
+    </div>
+
+    <!-- Metric row -->
+    <div class="metric-row">
+      <div class="metric-card">
+        <div class="metric-icon blue"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg></div>
+        <div class="metric-label">Online / UPI</div>
+        <div class="metric-value" id="dash-upi">₹0</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-icon green"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3B6D11" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></div>
+        <div class="metric-label">Cash</div>
+        <div class="metric-value" id="dash-cash">₹0</div>
+      </div>
+    </div>
+
+    <!-- Recent expenses -->
+    <div class="section-header">
+      <div class="section-title">Recent expenses</div>
+      <button class="section-link" onclick="goTo('screen-history')">View all</button>
+    </div>
+    <div class="expense-list" id="dash-recent">
+      <div class="empty-state">
+        <div class="empty-icon">💸</div>
+        <div class="empty-text">No expenses yet.<br/>Tap + to add your first one!</div>
+      </div>
+    </div>
+
+    <!-- Bottom nav -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" onclick="goTo('screen-dashboard')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Home</span>
+      </button>
+      <button class="nav-item" onclick="goTo('screen-history')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        <span>History</span>
+      </button>
+      <button class="nav-fab" onclick="goTo('screen-add')">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      <button class="nav-item" onclick="goTo('screen-reports')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span>Reports</span>
+      </button>
+      <button class="nav-item" onclick="goTo('screen-settings')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Profile</span>
+      </button>
+    </nav>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN: ADD EXPENSE
+============================================================ -->
+<div class="screen" id="screen-add">
+  <div class="app-layout">
+    <div class="page-header">
+      <button class="back-btn" onclick="goBack()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </button>
+      <div class="page-title">Add expense</div>
+      <div style="width:36px;"></div>
+    </div>
+
+    <!-- Amount zone -->
+    <div class="amount-zone">
+      <div class="amount-label">AMOUNT (₹)</div>
+      <div class="amount-display">
+        <span class="amount-sym">₹</span>
+        <input class="amount-input" type="number" id="add-amount" placeholder="0" inputmode="decimal" min="0" />
+      </div>
+    </div>
+
+    <div class="add-body">
+      <!-- Categories -->
+      <div class="field-section-label">Category</div>
+      <div class="cat-grid" id="cat-grid">
+        <button class="cat-chip" data-cat="Food" onclick="selectCat(this)">🍽<span>Food</span></button>
+        <button class="cat-chip" data-cat="Travel" onclick="selectCat(this)">🚗<span>Travel</span></button>
+        <button class="cat-chip" data-cat="Shopping" onclick="selectCat(this)">🛍<span>Shopping</span></button>
+        <button class="cat-chip" data-cat="Milk" onclick="selectCat(this)">🥛<span>Milk</span></button>
+        <button class="cat-chip" data-cat="Bills" onclick="selectCat(this)">📄<span>Bills</span></button>
+        <button class="cat-chip" data-cat="Health" onclick="selectCat(this)">💊<span>Health</span></button>
+        <button class="cat-chip" data-cat="Fun" onclick="selectCat(this)">🎉<span>Fun</span></button>
+        <button class="cat-chip" data-cat="Other" onclick="selectCat(this)">📦<span>Other</span></button>
+      </div>
+
+      <!-- Payment type -->
+      <div class="field-section-label">Payment type</div>
+      <div class="pay-toggle">
+        <button class="pay-btn" id="pay-cash" onclick="selectPay('cash')">💵 Cash</button>
+        <button class="pay-btn active" id="pay-upi" onclick="selectPay('upi')">📱 Online / UPI</button>
+      </div>
+
+      <!-- Note -->
+      <div class="field-section-label">Note <span style="font-weight:400;color:var(--text-muted);">(optional)</span></div>
+      <input class="field-input" type="text" id="add-note" placeholder="e.g. Auto to office" />
+
+      <!-- Date -->
+      <div class="field-section-label">Date</div>
+      <input class="field-input" type="date" id="add-date" />
+
+      <button class="btn-primary w-full save-btn" onclick="saveExpense()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        Save expense
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN: HISTORY
+============================================================ -->
+<div class="screen" id="screen-history">
+  <div class="app-layout">
+    <div class="page-header">
+      <button class="back-btn" onclick="goTo('screen-dashboard')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </button>
+      <div class="page-title">Expense history</div>
+      <div style="width:36px;"></div>
+    </div>
+
+    <!-- Search -->
+    <div class="search-bar">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="history-search" placeholder="Search expenses..." oninput="filterHistory()" />
+    </div>
+
+    <!-- Filter chips -->
+    <div class="filter-row">
+      <button class="filter-chip active" data-filter="All" onclick="setFilter(this)">All</button>
+      <button class="filter-chip" data-filter="Food" onclick="setFilter(this)">Food</button>
+      <button class="filter-chip" data-filter="Travel" onclick="setFilter(this)">Travel</button>
+      <button class="filter-chip" data-filter="Shopping" onclick="setFilter(this)">Shopping</button>
+      <button class="filter-chip" data-filter="Cash" onclick="setFilter(this)">Cash</button>
+      <button class="filter-chip" data-filter="UPI" onclick="setFilter(this)">UPI</button>
+    </div>
+
+    <!-- Summary -->
+    <div class="history-summary">
+      <div class="hs-item"><div class="hs-val" id="hist-count">0</div><div class="hs-lbl">Transactions</div></div>
+      <div class="hs-item"><div class="hs-val" id="hist-total">₹0</div><div class="hs-lbl">Total</div></div>
+      <div class="hs-item"><div class="hs-val" id="hist-month">June</div><div class="hs-lbl">Month</div></div>
+    </div>
+
+    <!-- List -->
+    <div class="expense-list scrollable" id="history-list">
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <div class="empty-text">No expenses found.</div>
+      </div>
+    </div>
+
+    <nav class="bottom-nav">
+      <button class="nav-item" onclick="goTo('screen-dashboard')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Home</span>
+      </button>
+      <button class="nav-item active" onclick="goTo('screen-history')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        <span>History</span>
+      </button>
+      <button class="nav-fab" onclick="goTo('screen-add')">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      <button class="nav-item" onclick="goTo('screen-reports')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span>Reports</span>
+      </button>
+      <button class="nav-item" onclick="goTo('screen-settings')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Profile</span>
+      </button>
+    </nav>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN: REPORTS
+============================================================ -->
+<div class="screen" id="screen-reports">
+  <div class="app-layout">
+    <div class="page-header">
+      <button class="back-btn" onclick="goTo('screen-dashboard')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </button>
+      <div class="page-title">Reports</div>
+      <div style="width:36px;"></div>
+    </div>
+
+    <!-- Summary cards -->
+    <div class="report-summary">
+      <div class="rs-card purple">
+        <div class="rs-label">Total spent</div>
+        <div class="rs-value" id="rpt-total">₹0</div>
+      </div>
+      <div class="rs-card green">
+        <div class="rs-label">Saved</div>
+        <div class="rs-value" id="rpt-saved">₹0</div>
+      </div>
+      <div class="rs-card blue">
+        <div class="rs-label">Transactions</div>
+        <div class="rs-value" id="rpt-count">0</div>
+      </div>
+    </div>
+
+    <!-- Category breakdown -->
+    <div class="section-header" style="padding:0 18px;">
+      <div class="section-title">By category</div>
+    </div>
+    <div class="cat-breakdown" id="rpt-cats" style="padding:0 18px 12px;"></div>
+
+    <!-- Payment split -->
+    <div class="section-header" style="padding:0 18px;">
+      <div class="section-title">Cash vs UPI</div>
+    </div>
+    <div class="pay-split-row" style="padding:0 18px 12px;">
+      <div class="pay-split-card blue">
+        <div class="ps-label">Online / UPI</div>
+        <div class="ps-value" id="rpt-upi">₹0</div>
+        <div class="ps-pct" id="rpt-upi-pct">0%</div>
+      </div>
+      <div class="pay-split-card green">
+        <div class="ps-label">Cash</div>
+        <div class="ps-value" id="rpt-cash">₹0</div>
+        <div class="ps-pct" id="rpt-cash-pct">0%</div>
+      </div>
+    </div>
+
+    <!-- Spending bar chart -->
+    <div class="section-header" style="padding:0 18px;">
+      <div class="section-title">This week</div>
+    </div>
+    <div class="week-chart" id="rpt-week-chart" style="padding:0 18px 100px;"></div>
+
+    <nav class="bottom-nav">
+      <button class="nav-item" onclick="goTo('screen-dashboard')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Home</span>
+      </button>
+      <button class="nav-item" onclick="goTo('screen-history')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        <span>History</span>
+      </button>
+      <button class="nav-fab" onclick="goTo('screen-add')">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      <button class="nav-item active" onclick="goTo('screen-reports')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span>Reports</span>
+      </button>
+      <button class="nav-item" onclick="goTo('screen-settings')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Profile</span>
+      </button>
+    </nav>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN: SETTINGS / PROFILE
+============================================================ -->
+<div class="screen" id="screen-settings">
+  <div class="app-layout">
+    <div class="settings-header">
+      <div class="settings-avatar" id="settings-avatar">RS</div>
+      <div class="settings-name" id="settings-name">Rahul Sharma</div>
+      <div class="settings-email" id="settings-email">rahul@gmail.com</div>
+    </div>
+
+    <div class="settings-body">
+      <div class="settings-section-label">Budget</div>
+      <div class="settings-group">
+        <div class="settings-row">
+          <div class="settings-row-icon purple">💰</div>
+          <div class="settings-row-label">Monthly budget</div>
+          <input class="settings-inline-input" type="number" id="settings-budget" placeholder="15000" onchange="saveBudget()" />
+        </div>
+      </div>
+
+      <div class="settings-section-label">Account</div>
+      <div class="settings-group">
+        <div class="settings-row" onclick="handleLogout()">
+          <div class="settings-row-icon red">🚪</div>
+          <div class="settings-row-label" style="color:#D85A30;">Log out</div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+      </div>
+
+      <div class="settings-section-label">About</div>
+      <div class="settings-group">
+        <div class="settings-row">
+          <div class="settings-row-icon blue">ℹ️</div>
+          <div class="settings-row-label">SpendSmart MVP v1.0</div>
+        </div>
+        <div class="settings-row">
+          <div class="settings-row-icon green">🛡</div>
+          <div class="settings-row-label">Your data is stored securely</div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="bottom-nav">
+      <button class="nav-item" onclick="goTo('screen-dashboard')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Home</span>
+      </button>
+      <button class="nav-item" onclick="goTo('screen-history')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/></svg>
+        <span>History</span>
+      </button>
+      <button class="nav-fab" onclick="goTo('screen-add')">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      <button class="nav-item" onclick="goTo('screen-reports')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span>Reports</span>
+      </button>
+      <button class="nav-item active" onclick="goTo('screen-settings')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Profile</span>
+      </button>
+    </nav>
+  </div>
+</div>
+
+<!-- Toast notification -->
+<div class="toast" id="toast"></div>
+
+<!-- Firebase SDK -->
+<script type="module" src="firebase.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
