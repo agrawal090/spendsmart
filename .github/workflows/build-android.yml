@@ -1,0 +1,58 @@
+name: Build Android APK
+
+# Run this workflow manually from the Actions tab,
+# or automatically every time you push to main
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Get your repo code onto the cloud machine
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Install Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # 3. Install Java (required for Android builds)
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # 4. Install Android SDK
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      # 5. Install npm packages (Capacitor)
+      - name: Install dependencies
+        run: npm install
+
+      # 6. Add the Android platform if not already added
+      - name: Add Android platform
+        run: test -d android || npx cap add android
+
+      # 7. Copy your HTML/CSS/JS into the native project
+      - name: Sync web assets
+        run: npx cap sync android
+
+      # 8. Build the debug APK (no signing needed — good for testing)
+      - name: Build debug APK
+        working-directory: ./android
+        run: chmod +x gradlew && ./gradlew assembleDebug
+
+      # 9. Upload the APK so you can download it from GitHub
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: spendsmart-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
