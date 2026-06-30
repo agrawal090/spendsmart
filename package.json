@@ -1,0 +1,15 @@
+{
+  "name": "spendsmart",
+  "version": "1.0.0",
+  "description": "SpendSmart - Track every rupee",
+  "scripts": {
+    "build:android": "npx cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.1.0",
+    "@capacitor/core": "^6.1.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.1.0"
+  }
+}
