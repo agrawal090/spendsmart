@@ -39,10 +39,7 @@ jobs:
 
       # 6. Add the Android platform if not already added
       - name: Add Android platform
-        run: |
-          if [ ! -d "android" ]; then
-            npx cap add android
-          fi
+        run: test -d android || npx cap add android
 
       # 7. Copy your HTML/CSS/JS into the native project
       - name: Sync web assets
