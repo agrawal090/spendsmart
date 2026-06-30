@@ -133,15 +133,48 @@ function friendlyError(e) {
 async function onUserLoggedIn(user) {
   state.user = user;
   try {
-    state.profile  = await window.getUserProfile(user.uid);
-    state.expenses = await window.getExpenses(user.uid);
+    const [profile, expenses] = await Promise.all([
+      window.getUserProfile(user.uid),
+      window.getExpenses(user.uid)
+    ]);
+
+    // If profile doc doesn't exist yet (e.g. first-ever Google login
+    // before setDoc finished), create a sane default but DO NOT touch
+    // expenses — they may still load fine independently.
+    state.profile  = profile || { name: user.displayName || user.email, budget: 15000 };
+    state.expenses = expenses || [];
+
+    goTo('screen-dashboard');
+    showToast(`Welcome back! 👋`);
   } catch (e) {
-    console.warn('Could not load data:', e);
-    state.profile  = { name: user.displayName || user.email, budget: 15000 };
-    state.expenses = [];
+    // IMPORTANT: do NOT reset state.profile / state.expenses here.
+    // A failed fetch (offline, permissions, etc.) should never look
+    // like "my data disappeared" — show an error and let the user retry.
+    console.error('Could not load data:', e);
+    showToast('Could not load your data — check your connection and pull to retry', 'error');
+
+    // Still go to dashboard so the UI isn't stuck, but keep whatever
+    // was in state (likely nothing yet) and offer a retry button.
+    goTo('screen-dashboard');
+    renderDataLoadError();
   }
-  goTo('screen-dashboard');
-  showToast(`Welcome back! 👋`);
+}
+
+function renderDataLoadError() {
+  const container = document.getElementById('dash-recent');
+  if (!container) return;
+  container.innerHTML = `
+    <div class="empty-state">
+      <div class="empty-icon">⚠️</div>
+      <div class="empty-text">Couldn't load your data.<br/>Check your internet connection.</div>
+      <button class="btn-primary" style="margin-top:14px;display:inline-flex;width:auto;padding:0 20px;" onclick="retryLoadData()">Retry</button>
+    </div>`;
+}
+
+async function retryLoadData() {
+  if (!state.user) { goTo('screen-auth'); return; }
+  showToast('Retrying…');
+  await onUserLoggedIn(state.user);
 }
 
 /* =============================================
