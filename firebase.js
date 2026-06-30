@@ -55,22 +55,10 @@ window.firebaseLogin = async (email, password) => {
 };
 
 window.firebaseGoogleLogin = async () => {
-  const provider = new GoogleAuthProvider();
-  const cred = await signInWithPopup(auth, provider);
-  // Create profile if new user
-  const userRef = doc(db, "users", cred.user.uid);
-  const userSnap = await getDoc(userRef);
-  if (!userSnap.exists()) {
-    await setDoc(userRef, {
-      name:      cred.user.displayName || "User",
-      email:     cred.user.email,
-      budget:    15000,
-      createdAt: new Date().toISOString()
-    });
-  }
-  return cred.user;
+  throw new Error(
+    "Google Sign-In is not yet supported in the Android APK. Please use Email & Password."
+  );
 };
-
 window.firebaseLogout = () => signOut(auth);
 
 // ---- USER PROFILE ----
