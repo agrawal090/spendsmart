@@ -99,14 +99,25 @@ window.addExpense = async (uid, expense) => {
 };
 
 window.getExpenses = async (uid) => {
+  // NOTE: Only ONE where() + no orderBy() here on purpose.
+  // Combining where() with two orderBy() clauses requires a Firestore
+  // composite index — if that index doesn't exist, this query throws
+  // an error. We sort client-side instead so it always works with
+  // zero extra setup in the Firebase console.
   const q = query(
     collection(db, "expenses"),
-    where("uid", "==", uid),
-    orderBy("date", "desc"),
-    orderBy("createdAt", "desc")
+    where("uid", "==", uid)
   );
   const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  const expenses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+  // Sort newest first: by date, then by createdAt as tiebreaker
+  expenses.sort((a, b) => {
+    if (a.date !== b.date) return b.date.localeCompare(a.date);
+    return (b.createdAt || '').localeCompare(a.createdAt || '');
+  });
+
+  return expenses;
 };
 
 window.deleteExpense = async (id) => {
