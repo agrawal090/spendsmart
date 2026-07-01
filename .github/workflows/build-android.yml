@@ -56,17 +56,32 @@ jobs:
         working-directory: ./android
         run: chmod +x gradlew && ./gradlew assembleDebug
 
-      # Print SHA-1 — use || true so this NEVER fails the build
+      # Generate debug keystore manually if it doesn't exist, then print SHA-1
       - name: Print debug SHA-1 fingerprint
         run: |
+          mkdir -p ~/.android
+          # Generate keystore if missing
+          if [ ! -f ~/.android/debug.keystore ]; then
+            echo "Generating debug keystore..."
+            keytool -genkeypair \
+              -keystore ~/.android/debug.keystore \
+              -alias androiddebugkey \
+              -keypass android \
+              -storepass android \
+              -dname "CN=Android Debug,O=Android,C=US" \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000
+          fi
+          echo ""
           echo "=========================================="
-          echo "YOUR SHA-1 FINGERPRINT FOR FIREBASE:"
+          echo "   COPY THIS SHA-1 INTO FIREBASE CONSOLE  "
           echo "=========================================="
           keytool -list -v \
             -keystore ~/.android/debug.keystore \
             -alias androiddebugkey \
             -storepass android \
-            -keypass android 2>&1 | grep -i "sha" || echo "Could not read keystore"
+            -keypass android | grep -E "SHA1:|SHA256:"
           echo "=========================================="
         continue-on-error: true
 
