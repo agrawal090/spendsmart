@@ -10,32 +10,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Get your repo code onto the cloud machine
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Install Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      # 3. Install Java (required for Android builds)
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      # 4. Install Android SDK
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      # 5. Install npm packages (Capacitor)
       - name: Install dependencies
         run: npm install
 
-      # 6. Copy web app files into the www/ folder Capacitor expects
       - name: Prepare web assets folder
         run: |
           mkdir -p www
@@ -43,43 +37,39 @@ jobs:
           mkdir -p www/icons
           cp icons/*.png www/icons/ 2>/dev/null || cp icon-*.png www/icons/ 2>/dev/null || true
 
-      # 7. Add the Android platform if not already added
       - name: Add Android platform
         run: test -d android || npx cap add android
 
-      # 8. Copy google-services.json (optional - needed for Google Sign-In)
       - name: Copy google-services.json
         run: |
           if [ -f google-services.json ]; then
             cp google-services.json android/app/google-services.json
-            echo "google-services.json copied successfully"
+            echo "google-services.json copied"
           else
-            echo "WARNING: google-services.json not found - Google Sign-In will not work on Android"
+            echo "WARNING: google-services.json not found"
           fi
 
-      # 9. Copy your HTML/CSS/JS into the native project
       - name: Sync web assets
         run: npx cap sync android
 
-      # 10. Build the debug APK
       - name: Build debug APK
         working-directory: ./android
         run: chmod +x gradlew && ./gradlew assembleDebug
 
-      # 11. Print SHA-1 AFTER build so debug keystore exists
+      # Print SHA-1 — use || true so this NEVER fails the build
       - name: Print debug SHA-1 fingerprint
         run: |
           echo "=========================================="
-          echo "COPY THIS SHA-1 INTO FIREBASE CONSOLE"
+          echo "YOUR SHA-1 FINGERPRINT FOR FIREBASE:"
           echo "=========================================="
           keytool -list -v \
             -keystore ~/.android/debug.keystore \
             -alias androiddebugkey \
             -storepass android \
-            -keypass android | grep "SHA1:"
+            -keypass android 2>&1 | grep -i "sha" || echo "Could not read keystore"
           echo "=========================================="
+        continue-on-error: true
 
-      # 12. Upload the APK as downloadable artifact
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
