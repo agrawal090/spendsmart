@@ -1,7 +1,5 @@
 name: Build Android APK
 
-# Run this workflow manually from the Actions tab,
-# or automatically every time you push to main
 on:
   workflow_dispatch:
   push:
@@ -45,33 +43,43 @@ jobs:
           mkdir -p www/icons
           cp icons/*.png www/icons/ 2>/dev/null || cp icon-*.png www/icons/ 2>/dev/null || true
 
-      # 6b. Print SHA-1 fingerprint (copy this into Firebase Console)
-      - name: Print debug SHA-1 fingerprint
-        run: |
-          keytool -list -v \
-            -keystore ~/.android/debug.keystore \
-            -alias androiddebugkey \
-            -storepass android \
-            -keypass android 2>/dev/null | grep SHA1
-
       # 7. Add the Android platform if not already added
       - name: Add Android platform
         run: test -d android || npx cap add android
 
-      # 7b. Copy google-services.json into native Android project
+      # 8. Copy google-services.json (optional - needed for Google Sign-In)
       - name: Copy google-services.json
-        run: cp google-services.json android/app/google-services.json
+        run: |
+          if [ -f google-services.json ]; then
+            cp google-services.json android/app/google-services.json
+            echo "google-services.json copied successfully"
+          else
+            echo "WARNING: google-services.json not found - Google Sign-In will not work on Android"
+          fi
 
-      # 8. Copy your HTML/CSS/JS into the native project
+      # 9. Copy your HTML/CSS/JS into the native project
       - name: Sync web assets
         run: npx cap sync android
 
-      # 9. Build the debug APK (no signing needed — good for testing)
+      # 10. Build the debug APK
       - name: Build debug APK
         working-directory: ./android
         run: chmod +x gradlew && ./gradlew assembleDebug
 
-      # 10. Upload the APK so you can download it from GitHub
+      # 11. Print SHA-1 AFTER build so debug keystore exists
+      - name: Print debug SHA-1 fingerprint
+        run: |
+          echo "=========================================="
+          echo "COPY THIS SHA-1 INTO FIREBASE CONSOLE"
+          echo "=========================================="
+          keytool -list -v \
+            -keystore ~/.android/debug.keystore \
+            -alias androiddebugkey \
+            -storepass android \
+            -keypass android | grep "SHA1:"
+          echo "=========================================="
+
+      # 12. Upload the APK as downloadable artifact
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
