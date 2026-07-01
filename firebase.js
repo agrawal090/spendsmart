@@ -29,7 +29,6 @@ const firebaseConfig = {
   messagingSenderId: "1091580341740",
   appId:             "1:1091580341740:web:5e6e365e0558efbf6324c9"
 };
-
 // Initialize Firebase
 const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -55,10 +54,22 @@ window.firebaseLogin = async (email, password) => {
 };
 
 window.firebaseGoogleLogin = async () => {
-  throw new Error(
-    "Google Sign-In is not yet supported in the Android APK. Please use Email & Password."
-  );
+  const provider = new GoogleAuthProvider();
+  const cred = await signInWithPopup(auth, provider);
+  // Create profile if new user
+  const userRef = doc(db, "users", cred.user.uid);
+  const userSnap = await getDoc(userRef);
+  if (!userSnap.exists()) {
+    await setDoc(userRef, {
+      name:      cred.user.displayName || "User",
+      email:     cred.user.email,
+      budget:    15000,
+      createdAt: new Date().toISOString()
+    });
+  }
+  return cred.user;
 };
+
 window.firebaseLogout = () => signOut(auth);
 
 // ---- USER PROFILE ----
