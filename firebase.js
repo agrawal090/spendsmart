@@ -13,7 +13,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-         GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
+         GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged
        } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc,
          query, where, orderBy, setDoc, getDoc
@@ -55,7 +55,20 @@ window.firebaseLogin = async (email, password) => {
 
 window.firebaseGoogleLogin = async () => {
   const provider = new GoogleAuthProvider();
-  const cred = await signInWithPopup(auth, provider);
+  // Use signInWithRedirect for Android WebView (signInWithPopup blocked by Google)
+  // Try popup first (works in browser), fall back to redirect (works in WebView)
+  let cred;
+  try {
+    cred = await signInWithPopup(auth, provider);
+  } catch (e) {
+    if (e.code === 'auth/operation-not-supported-in-this-environment' ||
+        e.code === 'auth/popup-blocked' ||
+        e.message.includes('disallowed_useragent')) {
+      await signInWithRedirect(auth, provider);
+      return; // page will reload, onAuthReady will catch the result
+    }
+    throw e;
+  }
   // Create profile if new user
   const userRef = doc(db, "users", cred.user.uid);
   const userSnap = await getDoc(userRef);
@@ -131,3 +144,23 @@ window.onAuthReady = (callback) => {
 };
 
 window.getCurrentUser = () => auth.currentUser;
+
+// Handle redirect result after Google Sign-In on Android WebView
+// This runs when the app reloads after signInWithRedirect completes
+getRedirectResult(auth).then(async (result) => {
+  if (result && result.user) {
+    // New user via redirect — ensure profile exists
+    const userRef = doc(db, "users", result.user.uid);
+    const userSnap = await getDoc(userRef);
+    if (!userSnap.exists()) {
+      await setDoc(userRef, {
+        name:      result.user.displayName || "User",
+        email:     result.user.email,
+        budget:    15000,
+        createdAt: new Date().toISOString()
+      });
+    }
+  }
+}).catch((e) => {
+  console.warn("Redirect result error:", e);
+});
