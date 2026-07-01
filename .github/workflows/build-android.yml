@@ -42,11 +42,25 @@ jobs:
         run: |
           mkdir -p www
           cp index.html app.css app.js firebase.js manifest.json sw.js www/
-          cp -r icons www/
+          mkdir -p www/icons
+          cp icons/*.png www/icons/ 2>/dev/null || cp icon-*.png www/icons/ 2>/dev/null || true
+
+      # 6b. Print SHA-1 fingerprint (copy this into Firebase Console)
+      - name: Print debug SHA-1 fingerprint
+        run: |
+          keytool -list -v \
+            -keystore ~/.android/debug.keystore \
+            -alias androiddebugkey \
+            -storepass android \
+            -keypass android 2>/dev/null | grep SHA1
 
       # 7. Add the Android platform if not already added
       - name: Add Android platform
         run: test -d android || npx cap add android
+
+      # 7b. Copy google-services.json into native Android project
+      - name: Copy google-services.json
+        run: cp google-services.json android/app/google-services.json
 
       # 8. Copy your HTML/CSS/JS into the native project
       - name: Sync web assets
